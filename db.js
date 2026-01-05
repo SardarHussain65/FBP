@@ -1,15 +1,23 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-// Replace <connection string> with your Atlas connection string
-const uri = '<connection string>';
+const uri = process.env.MONGODB_URL;
 
-mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+
+mongoose.connect(uri)
     .then(() => {
         console.log('Connected to MongoDB Atlas with Mongoose!');
     })
     .catch(err => {
         console.error('Connection error:', err);
+        console.error('Possible causes: IP not whitelisted in MongoDB Atlas, incorrect password, or network issues.');
     });
+
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+    console.log('Connected to MongoDB Atlas with Mongoose!');
+});
+
+module.exports = db;

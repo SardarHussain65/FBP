@@ -20,7 +20,7 @@ const menuItemSchema = new mongoose.Schema({
         required: true
     },
     ingredient: {
-        type: [string],
+        type: [String],
         default: [],
         required: true
     },
@@ -33,4 +33,4 @@ const menuItemSchema = new mongoose.Schema({
 
 const menuItem = mongoose.model("menuItem", menuItemSchema)
 
-module.export = menuItem; 
+module.exports = menuItem; 

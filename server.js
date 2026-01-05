@@ -1,31 +1,28 @@
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-const menuItem = require('./Models/MenuItem')
-
+const db = require('./db')
+const menuItemRoutes = require('./routes/menuItemRoutes')
+const usersRoutes = require('./routes/usersRoutes')
 app.use(bodyParser.json());
+const passport = require('./auth');
 
 app.get("/", (req, res) => {
     res.send("Hello World Testing");
+
 });
 
-app.get("/about", (req, res) => {
-    res.send("About Page");
-});
-
-app.post("/item", (req, res) => {
-    const item = req.body;
-    res.send(item);
-});
+const authMiddleware = passport.authenticate('local', { session: false });
 
 
-app.post("/meuns", (req, res) => {
+app.use("/users", usersRoutes);
 
-    const menuItem = new menuItem(res.data)
+app.use("/menu", authMiddleware, menuItemRoutes);
 
 
-})
 
-app.listen(3000, () => {
+app.use(passport.initialize());
+app.listen(process.env.PORT, () => {
     console.log("Server is running on port 3000");
 });
