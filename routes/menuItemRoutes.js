@@ -23,15 +23,9 @@ router.post("/", uploadFile, async (req, res) => {
         });
 
         // 4. Save to database
-        newItem.save()
-            .then(() => {
-                console.log("Menu item saved successfully");
-                res.status(201).send(newItem);  // ✅ Moved inside .then()
-            })
-            .catch((error) => {
-                console.error("Error saving menu item:", error);
-                res.status(500).json({ error: error.message });
-            });
+        await newItem.save();
+        console.log("Menu item saved successfully");
+        res.status(201).json(newItem);
 
     } catch (error) {
         console.error("Error uploading image:", error);

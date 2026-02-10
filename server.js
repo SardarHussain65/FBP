@@ -6,8 +6,7 @@ const db = require('./db')
 const menuItemRoutes = require('./routes/menuItemRoutes')
 const usersRoutes = require('./routes/usersRoutes')
 app.use(bodyParser.json());
-const passport = require('./auth');
-const { jwtAuthMiddleware } = require('./Models/jwt');
+const { jwtAuthMiddleware } = require('./middleware/jwt');
 
 
 
@@ -25,7 +24,6 @@ app.use("/menu", jwtAuthMiddleware, menuItemRoutes);
 
 
 
-app.use(passport.initialize());
 app.listen(process.env.PORT, () => {
     console.log("Server is running on port 3000");
 });
