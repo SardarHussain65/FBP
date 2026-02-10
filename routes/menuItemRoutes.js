@@ -8,7 +8,7 @@ const menuController = require('../controllers/menuController');
 
 
 
-router.post("/", validate(createMenu), uploadFile, asyncHandler(menuController.createMenuItem));
+router.post("/", uploadFile, validate(createMenu), asyncHandler(menuController.createMenuItem));
 
 router.get("/", asyncHandler(menuController.getAllMenuItems));
 
@@ -17,7 +17,7 @@ router.get("/:id", asyncHandler(menuController.getMenuItem));
 
 router.get("/taste/:taste", asyncHandler(menuController.getMenuByTaste));
 
-router.put("/:id", validate(updateMenu), asyncHandler(menuController.updateMenuItem));
+router.put("/:id", uploadFile, validate(updateMenu), asyncHandler(menuController.updateMenuItem));
 
 router.delete("/:id", asyncHandler(menuController.deleteMenuItem));
 
