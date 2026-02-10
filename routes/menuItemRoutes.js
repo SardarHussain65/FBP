@@ -1,17 +1,42 @@
 const express = require("express");
 const router = express.Router();
 const menuItem = require("../Models/MenuItem");
+const { uploadFile } = require('../middleware/multer');
+const { uploadFile: uploadToImageKit } = require('../services/storage.service');
 
-router.post("/", (req, res) => {
-    const newItem = new menuItem(req.body);
-    newItem.save()
-        .then(() => {
-            console.log("Menu item saved successfully");
-        })
-        .catch((error) => {
-            console.error("Error saving menu item:", error);
+
+
+router.post("/", uploadFile, async (req, res) => {
+    try {
+        // 1. Check if image was uploaded
+        if (!req.file) {
+            return res.status(400).json({ message: "Image is required" });
+        }
+
+        // 2. Upload to ImageKit
+        const imageResult = await uploadToImageKit(req.file);
+
+        // 3. Create new item with ImageKit URL
+        const newItem = new menuItem({
+            ...req.body,
+            image: imageResult.url
         });
-    res.send(newItem);
+
+        // 4. Save to database
+        newItem.save()
+            .then(() => {
+                console.log("Menu item saved successfully");
+                res.status(201).send(newItem);  // ✅ Moved inside .then()
+            })
+            .catch((error) => {
+                console.error("Error saving menu item:", error);
+                res.status(500).json({ error: error.message });
+            });
+
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 router.get("/", async (req, res) => {

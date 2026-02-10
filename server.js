@@ -7,18 +7,45 @@ const menuItemRoutes = require('./routes/menuItemRoutes')
 const usersRoutes = require('./routes/usersRoutes')
 app.use(bodyParser.json());
 const passport = require('./auth');
+const { jwtAuthMiddleware } = require('./Models/jwt');
+const { uploadFile: uploadToImageKit } = require('./services/storage.service');
+
+
+const { uploadFile } = require("./middleware/multer");
+
+app.post("/upload", uploadFile, async (req, res) => {
+    try {
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        const result = await uploadToImageKit(file);
+        console.log("File uploaded successfully:", result);
+
+        res.status(200).json({
+            message: "File uploaded successfully",
+            file: result
+        });
+    } catch (error) {
+        console.error("Upload error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
 
 app.get("/", (req, res) => {
     res.send("Hello World Testing");
 
 });
 
-const authMiddleware = passport.authenticate('local', { session: false });
-
 
 app.use("/users", usersRoutes);
 
-app.use("/menu", authMiddleware, menuItemRoutes);
+app.use("/menu", jwtAuthMiddleware, menuItemRoutes);
 
 
 
