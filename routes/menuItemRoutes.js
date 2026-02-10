@@ -45,6 +45,7 @@ router.get("/", async (req, res) => {
         res.send(menuItems)
     } catch (error) {
         console.error("Error fetching menu items:", error)
+        res.status(500).json({ error: "Internal Server Error" });
     }
 })
 

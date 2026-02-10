@@ -6,8 +6,8 @@ const { jwtAuthMiddleware, generateToken } = require("../Models/jwt");
 
 router.post("/register", async (req, res) => {
     try {
-        const data = req.body;
-        const newUser = new users(data);
+        const { username, password, name, email } = req.body; // whitelist expected fields
+        const newUser = new users({ username, password, name, email });
         await newUser.save();
         const payload = {
             id: newUser._id,
@@ -49,11 +49,8 @@ router.post('/login', async (req, res) => {
 router.get('/profile', jwtAuthMiddleware, async (req, res) => {
     try {
         const userData = req.tokenPayload;
-        console.log("User Data: ", userData);
-
         const userId = userData.id;
-        const user = await users.findById(userId);
-
+        const user = await users.findById(userId).select('-password');
         res.status(200).json({ user });
     } catch (err) {
         console.error(err);
