@@ -7,18 +7,21 @@ const menuItemRoutes = require('./routes/menuItemRoutes')
 const usersRoutes = require('./routes/usersRoutes')
 app.use(bodyParser.json());
 const passport = require('./auth');
+const { jwtAuthMiddleware } = require('./Models/jwt');
+
+
+
+
 
 app.get("/", (req, res) => {
     res.send("Hello World Testing");
 
 });
 
-const authMiddleware = passport.authenticate('local', { session: false });
-
 
 app.use("/users", usersRoutes);
 
-app.use("/menu", authMiddleware, menuItemRoutes);
+app.use("/menu", jwtAuthMiddleware, menuItemRoutes);
 
 
 
