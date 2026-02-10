@@ -22,6 +22,8 @@ app.use("/users", usersRoutes);
 
 app.use("/menu", jwtAuthMiddleware, menuItemRoutes);
 
+app.use(require('./middleware/errorHandler'));
+
 
 
 app.listen(process.env.PORT, () => {

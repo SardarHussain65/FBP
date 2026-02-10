@@ -1,72 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const users = require("../Models/Users");
-const { jwtAuthMiddleware, generateToken } = require("../middleware/jwt");
+const { jwtAuthMiddleware } = require("../middleware/jwt");
+const validate = require('../middleware/validate');
+const { register, login } = require('../validations/user.validation');
+const asyncHandler = require('../utils/asyncHandler');
+const userController = require('../controllers/userController');
 
 
-router.post("/register", async (req, res) => {
-    try {
-        const { username, password, name, email } = req.body; // whitelist expected fields
-        const newUser = new users({ username, password, name, email });
-        await newUser.save();
-        const payload = {
-            id: newUser._id,
-            username: newUser.username,
-        }
-        const token = generateToken(payload);
-        res.status(201).json({ message: "User registered successfully", token });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
+router.post("/register", validate(register), asyncHandler(userController.registerUser));
 
 
-router.post('/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        const user = await users.findOne({ username: username });
-
-        if (!user || !(await user.comparePassword(password))) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-        }
-
-        const payload = {
-            id: user.id,
-            username: user.username
-        }
-        const token = generateToken(payload);
-
-        res.json({ token })
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+router.post('/login', validate(login), asyncHandler(userController.loginUser));
 
 // Profile route
-router.get('/profile', jwtAuthMiddleware, async (req, res) => {
-    try {
-        const userData = req.tokenPayload;
-        const userId = userData.id;
-        const user = await users.findById(userId).select('-password');
-        res.status(200).json({ user });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-})
+router.get('/profile', jwtAuthMiddleware, asyncHandler(userController.getUserProfile));
 
 
-router.get("/", jwtAuthMiddleware, async (req, res) => {
-    try {
-        const userDetail = await users.find();
-        res.status(200).json(userDetail);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
+router.get("/", jwtAuthMiddleware, asyncHandler(userController.getAllUsers));
 
 module.exports = router;

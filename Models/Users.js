@@ -12,7 +12,15 @@ const UserSchema = new mongoose.Schema({
         minlength: 6
 
     },
-
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    name: {
+        type: String,
+        required: true
+    }
 })
 
 UserSchema.pre("save", async function () {
