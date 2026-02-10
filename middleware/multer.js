@@ -11,5 +11,15 @@ const upload = multer({
         }
     }
 });
-const uploadFile = upload.single("image");
+const uploadSingle = upload.single("image");
+
+const uploadFile = (req, res, next) => {
+    uploadSingle(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+};
+
 module.exports = { uploadFile };
