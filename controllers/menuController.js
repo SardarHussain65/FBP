@@ -27,8 +27,44 @@ const createMenuItem = async (req, res) => {
 };
 
 const getAllMenuItems = async (req, res) => {
-    const menuItems = await MenuItem.find();
-    res.send(menuItems);
+    try {
+        // 1. Filtering
+        const queryObj = { ...req.query };
+        const excludedFields = ['page', 'sort', 'limit', 'fields'];
+        excludedFields.forEach(el => delete queryObj[el]);
+
+        // 2. Sorting
+        let sortStr = 'createdAt';
+        if (req.query.sort) {
+            sortStr = req.query.sort.split(',').join(' ');
+        }
+
+        // 3. Pagination
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        // 4. Execution
+        const menuItems = await MenuItem.find(queryObj)
+            .sort(sortStr)
+            .skip(skip)
+            .limit(limit);
+
+        // 5. Count for metadata
+        const total = await MenuItem.countDocuments(queryObj);
+
+        res.status(200).json({
+            success: true,
+            results: menuItems.length,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+            data: menuItems
+        });
+    } catch (error) {
+        // Fallback if something unexpected happens (though asyncHandler covers this usually)
+        throw error;
+    }
 };
 
 const getMenuItem = async (req, res) => {
