@@ -12,29 +12,11 @@ const createMenuItem = async (req, res) => {
     // 2. Upload to ImageKit
     const imageResult = await uploadToImageKit(req.file);
 
-    // 3. Parse and Validate fields
-    const price = parseFloat(req.body.price);
-    const num_of_sale = req.body.num_of_sale ? parseInt(req.body.num_of_sale, 10) : 0;
-    const isDrink = req.body.isDrink === 'true' || req.body.isDrink === true;
-
-    if (isNaN(price)) {
-        const error = new Error('Price must be a valid number');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (isNaN(num_of_sale)) {
-        const error = new Error('Number of sale must be a valid integer');
-        error.statusCode = 400;
-        throw error;
-    }
+    // 3. (Parsed by Zod Middleware now)
 
     // 4. Create new item with ImageKit URL and parsed data
     const newItem = new MenuItem({
         ...req.body,
-        price,
-        num_of_sale,
-        isDrink,
         image: imageResult.url
     });
 
