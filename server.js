@@ -1,31 +1,50 @@
-require('dotenv').config();
-const express = require("express");
-const bodyParser = require("body-parser");
-const app = express();
-const db = require('./db')
-const menuItemRoutes = require('./routes/menuItemRoutes')
-const usersRoutes = require('./routes/usersRoutes')
-app.use(bodyParser.json());
-const { jwtAuthMiddleware } = require('./middleware/jwt');
+/**
+ * Server Entry Point
+ * Validates environment, connects to database, and starts the server
+ */
 
+const { validateEnv, getConfig } = require('./config/env');
+const { connectDB } = require('./config/database');
+const app = require('./app');
 
+// Validate environment variables before starting
+validateEnv();
 
+const config = getConfig();
 
+// Connect to database and start server
+const startServer = async () => {
+    try {
+        // Connect to MongoDB
+        await connectDB();
+        
+        // Start Express server
+        const server = app.listen(config.port, () => {
+            console.log(`🚀 Server running on port ${config.port}`);
+            console.log(`📍 Environment: ${config.nodeEnv}`);
+        });
 
-app.get("/", (req, res) => {
-    res.send("Hello World Testing");
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', (err) => {
+            console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+            console.error(err.name, err.message);
+            server.close(() => {
+                process.exit(1);
+            });
+        });
 
-});
+        // Handle SIGTERM signal (e.g., from Heroku)
+        process.on('SIGTERM', () => {
+            console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+            server.close(() => {
+                console.log('💥 Process terminated!');
+            });
+        });
 
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
 
-app.use("/users", usersRoutes);
-
-app.use("/menu", jwtAuthMiddleware, menuItemRoutes);
-
-app.use(require('./middleware/errorHandler'));
-
-
-
-app.listen(process.env.PORT, () => {
-    console.log("Server is running on port 3000");
-});
+startServer();

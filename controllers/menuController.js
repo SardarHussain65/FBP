@@ -1,5 +1,6 @@
 const MenuItem = require("../Models/MenuItem");
 const { uploadFile: uploadToImageKit } = require('../services/storage.service');
+const { successResponse, paginatedResponse } = require('../utils/response');
 
 const createMenuItem = async (req, res) => {
     // 1. Check if image was uploaded
@@ -23,7 +24,7 @@ const createMenuItem = async (req, res) => {
     // 4. Save to database
     await newItem.save();
     console.log("Menu item saved successfully");
-    res.status(201).json(newItem);
+    return successResponse(res, 201, 'Menu item created successfully', newItem);
 };
 
 const getAllMenuItems = async (req, res) => {
@@ -53,14 +54,7 @@ const getAllMenuItems = async (req, res) => {
         // 5. Count for metadata
         const total = await MenuItem.countDocuments(queryObj);
 
-        res.status(200).json({
-            success: true,
-            results: menuItems.length,
-            total,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-            data: menuItems
-        });
+        return paginatedResponse(res, 200, 'Menu items retrieved successfully', menuItems, page, limit, total);
     } catch (error) {
         // Fallback if something unexpected happens (though asyncHandler covers this usually)
         throw error;
@@ -74,17 +68,17 @@ const getMenuItem = async (req, res) => {
         error.statusCode = 404;
         throw error;
     }
-    res.send(item);
+    return successResponse(res, 200, 'Menu item retrieved successfully', item);
 };
 
 const getMenuByTaste = async (req, res) => {
-    const item = await MenuItem.find({ taste: req.params.taste });
-    if (!item || item.length === 0) {
-        const error = new Error('Menu item not found');
+    const items = await MenuItem.find({ taste: req.params.taste });
+    if (!items || items.length === 0) {
+        const error = new Error('No menu items found for this taste');
         error.statusCode = 404;
         throw error;
     }
-    res.send(item);
+    return successResponse(res, 200, 'Menu items retrieved successfully', items);
 };
 
 const updateMenuItem = async (req, res) => {
@@ -94,7 +88,7 @@ const updateMenuItem = async (req, res) => {
         error.statusCode = 404;
         throw error;
     }
-    res.send(item);
+    return successResponse(res, 200, 'Menu item updated successfully', item);
 };
 
 const deleteMenuItem = async (req, res) => {
@@ -104,7 +98,7 @@ const deleteMenuItem = async (req, res) => {
         error.statusCode = 404;
         throw error;
     }
-    res.send(item);
+    return successResponse(res, 200, 'Menu item deleted successfully', item);
 };
 
 module.exports = {
